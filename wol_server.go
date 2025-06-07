@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
-	"encoding/hex"
 	"errors"
 	"net"
-	"strings"
 )
 
 var macAddresses = map[string]string{

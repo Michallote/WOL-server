@@ -8,3 +8,4 @@ services:
       - "8330:8330"
     environment:
       PORT: "8330"
+    network_mode: "host"
