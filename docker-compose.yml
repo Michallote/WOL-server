@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  wol-server:
+    image: michallote/wol-server:latest
+    restart: always
+    ports:
+      - "8330:8330"
+    environment:
+      PORT: "8330"
