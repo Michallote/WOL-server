@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"encoding/hex"
+	"errors"
+	"net"
+	"strings"
 )
 
 var macAddresses = map[string]string{
@@ -14,6 +18,40 @@ var macAddresses = map[string]string{
 	"beemo":     "9c:6b:00:33:ef:18",
 	"beemo-qc2": "9c:6b:00:33:ef:18",
 }
+
+
+// SendWOLPacket sends a Wake-on-LAN magic packet to the given MAC address
+func SendWOLPacket(macAddr string) error {
+	hwAddr, err := net.ParseMAC(macAddr)
+	if err != nil {
+		return err
+	}
+	if len(hwAddr) != 6 {
+		return errors.New("invalid MAC address length")
+	}
+	// Magic packet: 6x 0xFF followed by MAC 16 times
+	packet := make([]byte, 6+16*6)
+	for i := 0; i < 6; i++ {
+		packet[i] = 0xFF
+	}
+	for i := 0; i < 16; i++ {
+		copy(packet[6+i*6:], hwAddr)
+	}
+	// UDP broadcast
+	addr := &net.UDPAddr{
+		IP:   net.IPv4bcast,
+		Port: 9,
+	}
+	conn, err := net.DialUDP("udp", nil, addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	_, err = conn.Write(packet)
+	return err
+}
+
+
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	alias := r.URL.Query().Get("alias")
@@ -28,8 +66,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd := exec.Command("wakeonlan", mac)
-	err := cmd.Run()
+	err := SendWOLPacket(mac)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to send Wake-on-LAN packet: %v", err), http.StatusInternalServerError)
 		return
