@@ -1,0 +1,1 @@
+curl "http://localhost:8330/wakeonlan?alias=BMO"
