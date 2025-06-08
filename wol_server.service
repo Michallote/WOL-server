@@ -1,0 +1,11 @@
+[Unit]
+Description=Wake-on-LAN Server
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/wol_server --port=8330
+Restart=on-failure
+User=root
+
+[Install]
+WantedBy=multi-user.target
